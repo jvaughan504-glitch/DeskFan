@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Adafruit_NeoPixel.h>
+#include "esp32-hal-ledc.h"  // ensure LEDC helpers are declared
 
 // ---------- USER CONFIG: WiFi ----------
 const char* ssid     = "BELL728";
