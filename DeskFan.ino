@@ -1,7 +1,9 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Adafruit_NeoPixel.h>
-#if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+#include <Arduino.h>
+
 #include "esp32-hal-ledc.h"  // ensure LEDC helpers are declared
 #endif
 
@@ -138,7 +140,7 @@ uint32_t lastRpmMillis = 0;
 
 // ---------- Fan PWM helpers (ESP32 LEDC or generic PWM fallback) ----------
 void initFanPwm() {
-#if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
   ledcSetup(FAN_PWM_CHANNEL, FAN_PWM_FREQ, FAN_PWM_RES);
   ledcAttachPin(FAN_PWM_PIN, FAN_PWM_CHANNEL);
 #else
@@ -147,7 +149,7 @@ void initFanPwm() {
 }
 
 void writeFanDuty(uint8_t duty) {
-#if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
   ledcWrite(FAN_PWM_CHANNEL, duty);
 #else
   analogWrite(FAN_PWM_PIN, duty);
