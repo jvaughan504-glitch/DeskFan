@@ -1,6 +1,10 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Adafruit_NeoPixel.h>
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+#include <Arduino.h>
+#include "esp32-hal-ledc.h"  // ensure LEDC helpers are declared
+#endif
 
 // ---------- USER CONFIG: WiFi ----------
 const char* ssid     = "BELL728";
@@ -133,12 +137,30 @@ volatile uint32_t tachPulses = 0;  // incremented in ISR on each pulse
 uint16_t currentRpm = 0;
 uint32_t lastRpmMillis = 0;
 
+// ---------- Fan PWM helpers (ESP32 LEDC or generic PWM fallback) ----------
+void initFanPwm() {
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+  ledcSetup(FAN_PWM_CHANNEL, FAN_PWM_FREQ, FAN_PWM_RES);
+  ledcAttachPin(FAN_PWM_PIN, FAN_PWM_CHANNEL);
+#else
+  pinMode(FAN_PWM_PIN, OUTPUT);
+#endif
+}
+
+void writeFanDuty(uint8_t duty) {
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+  ledcWrite(FAN_PWM_CHANNEL, duty);
+#else
+  analogWrite(FAN_PWM_PIN, duty);
+#endif
+}
+
 // ---------- Helper: set fan PWM 0-100% ----------
 void setFanPercent(uint8_t percent) {
   if (percent > 100) percent = 100;
   uint8_t duty = map(percent, 0, 100, 0, 255);
   currentFanDuty = duty;
-  ledcWrite(FAN_PWM_CHANNEL, duty);
+  writeFanDuty(duty);
 }
 
 // ---------- Helper: set ARGB color ----------
@@ -251,8 +273,7 @@ void setup() {
   Serial.println("\nBooting...");
 
   // Fan PWM
-    ledcSetup(FAN_PWM_CHANNEL, FAN_PWM_FREQ, FAN_PWM_RES);
-  ledcAttachPin(FAN_PWM_PIN, FAN_PWM_CHANNEL);
+  initFanPwm();
   setFanPercent(50); // start at 50%
 
   // ARGB
