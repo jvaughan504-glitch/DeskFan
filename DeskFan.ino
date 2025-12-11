@@ -3,6 +3,7 @@
 #include <Adafruit_NeoPixel.h>
 #if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
 #include <Arduino.h>
+
 #include "esp32-hal-ledc.h"  // ensure LEDC helpers are declared
 #endif
 
